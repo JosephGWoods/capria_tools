@@ -80,9 +80,8 @@ else
     mask    =   zeros([1 dims(1:3)]);
 end
 
-
-if verb
-    fprintf(1,'\n00.00%');
+if verb && n_parts==1
+    fprintf(1,'\n 00.00%');
 end
 for n = 1:length(idx)
     i = idx(n);
@@ -97,10 +96,17 @@ for n = 1:length(idx)
     mask(i)     =   sqrt(D);
     
     if verb
-        fprintf(1,'\b\b\b\b\b\b%05.2f%%',100*n/length(idx));
+        if n_parts==1
+            fprintf(1,'\b\b\b\b\b\b%05.2f%%',100*n/length(idx));
+        else
+            info = dbstack("-completenames");
+            if strcmp(info(2).name,'adaptive_estimate_sens_par') % Only run if adaptive_estimate_sens_par.m called this function
+                parfor_progress;
+            end
+        end
     end
 end
-if verb
+if verb && n_parts==1
     fprintf(1, '\n');
 end
 
