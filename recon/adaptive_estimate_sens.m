@@ -100,9 +100,9 @@ for n = 1:length(idx)
             fprintf(1,'\b\b\b\b\b\b%05.2f%%',100*n/length(idx));
         else
             info = dbstack("-completenames");
-            if strcmp(info(2).name,'adaptive_estimate_sens_par') % Only run if adaptive_estimate_sens_par.m called this function
-                parfor_progress;
-            end
+            % if strcmp(info(2).name,'adaptive_estimate_sens_par') % Only run if adaptive_estimate_sens_par.m called this function
+            %     parfor_progress;
+            % end
         end
     end
 end

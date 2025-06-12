@@ -7,65 +7,51 @@
 
 function sens = adaptive_estimate_sens_par(varargin)
 
-p = gcp;                 % Get the current parallel pool object
-nWorkers = p.NumWorkers; % Find the number of workers available
-
 % Extract inputs
 p = inputParser;
 p.addParameter('data',  []);
 p.addParameter('kernel',5);
 p.addParameter('thresh',0,  @isscalar);
 p.addParameter('verbose',false, @islogical);
+%p.addParameter('maxNWorkers',inf, @isscalar);
 p.parse(varargin{:});
 data    = p.Results.data;
 kernel  = p.Results.kernel;
 thresh  = p.Results.thresh;
 verb    = p.Results.verbose;
+%maxNWorkers = p.Results.maxNWorkers;
 clear p;
+
+% pool = gcp;                 % Get the current parallel pool object
+% nWorkers = pool.NumWorkers; % Find the number of workers available
+% if nWorkers > maxNWorkers
+%     nWorkers = maxNWorkers;
+% end
 
 % Save size imformation and 
 dims   = size(data);
-N      = prod(dims(1:3));
+%N      = prod(dims(1:3));
 ncoils = dims(4);
-% data   = reshape(data, N, 1, 1, ncoils);
-% 
-% % Set up parallel job information and voxel indices for each worker to work on
-% % and split up data to reduce memory overheads during parfor loop
-% n   = ceil(N/nWorkers);
-% idx      = cell(nWorkers,1);
-% dataCell = cell(nWorkers,1);
-% for ii = 1:nWorkers
-%     idx{ii} = (ii-1)*n+1:min(ii*n, N);
-%     dataCell{ii} = data(idx{ii},1,1,:);
-% end
-% clear data
-% 
-% % Run adaptive_estimate_sens, splitting it into nWorkers jobs
-% sensCell = cell(nWorkers,1);
-% maskCell = cell(nWorkers,1);
-% parfor_progress(nWorkers); % Initialize
-% parfor ii = 1:nWorkers
-%     [sensCell{ii}, ~, maskCell{ii}] = ...
-%         adaptive_estimate_sens('data', dataCell{ii}, 'kernel', kernel, 'thresh', thresh, 'verb', verb);
-% end
-% clear dataCell
 
-% Run adaptive_estimate_sens, splitting it into nWorkers jobs
-sensCell = cell(nWorkers,1);
-idxCell  = cell(nWorkers,1);
-maskCell = cell(nWorkers,1);
+% Run adaptive_estimate_sens, splitting it into multiple jobs
+% I use 4*nWorkers so we get an update roughly every 25% chunk completed
+N = 100;
+sensCell = cell(N,1);
+idxCell  = cell(N,1);
+maskCell = cell(N,1);
 parfor_progress(N); % Initialize
-for ii = 1:nWorkers
+parfor ii = 1:N
     [sensCell{ii}, idxCell{ii}, maskCell{ii}] = ...
-        adaptive_estimate_sens('data', data, 'parts', nWorkers, 'part', ii, ...
+        adaptive_estimate_sens('data', data, 'parts', N, 'part', ii, ...
                                'kernel', kernel, 'thresh', thresh, 'verbose', verb);
+    parfor_progress;
 end
 parfor_progress(0);
 
 % Now sort it back into the shape used by adaptive_estimate_sens()
 sens = zeros([ncoils, dims(1:3)]);
 mask = zeros([1     , dims(1:3)]);
-for ii = 1:nWorkers
+for ii = 1:N
     sens(:,idxCell{ii}) = sensCell{ii};
     mask(  idxCell{ii}) = maskCell{ii};
 end

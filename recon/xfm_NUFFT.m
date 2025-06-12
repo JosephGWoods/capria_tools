@@ -65,15 +65,15 @@ function res = xfm_NUFFT(dims, coils, fieldmap_struct, k, varargin)
     lengthValidator =   @(x) length(x) == 2 || length(x) == 3;
 
     %   Input options
-    p.addParamValue('wi',       [],                     @(x) size(x,2) == dims(4)||isscalar(x));
-    p.addParamValue('Jd',       [6,6,6],                lengthValidator);
-    p.addParamValue('Kd',       2*dims(1:3),            lengthValidator);
-    p.addParamValue('shift',    floor(dims(1:3)/2),     lengthValidator);
-    p.addParamValue('mean',     true,                   @islogical);
-    p.addParamValue('table',    false,                  @islogical);
-    p.addParamValue('loop',     false,                  @islogical);
-    p.addParamValue('PSF',      []);
-    p.addParamValue('st',       []);
+    p.addParameter('wi',       [],                     @(x) size(x,2) == dims(4)||isscalar(x));
+    p.addParameter('Jd',       [6,6,6],                lengthValidator);
+    p.addParameter('Kd',       2*dims(1:3),            lengthValidator);
+    p.addParameter('shift',    floor(dims(1:3)/2),     lengthValidator);
+    p.addParameter('mean',     true,                   @islogical);
+    p.addParameter('table',    false,                  @islogical);
+    p.addParameter('loop',     false,                  @islogical);
+    p.addParameter('PSF',      []);
+    p.addParameter('st',       []);
 
     p.parse(varargin{:});
     p   =   p.Results;
